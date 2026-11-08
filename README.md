@@ -36,6 +36,23 @@ The Firefox zip is what you upload to addons.mozilla.org. The listing text is in
 the privacy policy is in `PRIVACY.md`. Firefox needs version 140 or later, because the manifest declares its
 data use (the build sent to pobb.in) with `data_collection_permissions`, which Firefox supports from 140.
 
+## Releases
+
+GitHub Actions does this (`.github/workflows/`):
+
+- **CI** (every push to `main` and every pull request): unit tests, Mozilla's linter and a packaging run.
+- **Release** (pushing a tag like `v0.2.0`): checks the tag matches the version in `manifest.base.json` and
+  `package.json`, runs the tests, gets the Firefox add-on signed by Mozilla as an unlisted add-on, and publishes
+  a GitHub release with the `.xpi` (drag onto Firefox to install) and the Chrome/Edge zip, plus install steps.
+
+To release: set the same new version in `manifest.base.json` and `package.json`, commit, then
+`git tag v0.2.0 && git push origin main v0.2.0`. Mozilla signs each version number only once, whether it's for
+the store listing or a release file.
+
+One-time setup: in addons.mozilla.org → Developer Hub → Tools → Manage API Keys, create a key, then add it to the
+GitHub repo (Settings → Secrets and variables → Actions) as `AMO_JWT_ISSUER` (the JWT issuer) and
+`AMO_JWT_SECRET` (the JWT secret).
+
 ## How it works
 
 1. **Snapshots.** The panel asks poe.ninja's builds API for the character, the same request poe.ninja's own page

@@ -1,0 +1,25 @@
+# On every push and pull request: unit tests, Mozilla's add-on linter, and a packaging dry run.
+# The browser end-to-end tests (tools/e2e) need installed browsers and live poe.ninja, so they run locally.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run lint:firefox
+      - run: npm run package

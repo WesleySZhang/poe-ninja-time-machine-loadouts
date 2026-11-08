@@ -1,0 +1,80 @@
+# Pushing a tag "vX.Y.Z" publishes a GitHub release with:
+#   - the Firefox add-on, signed by Mozilla as an unlisted (self-distributed) add-on: a .xpi that installs
+#     by dragging it onto Firefox;
+#   - the Chrome/Edge zip, loaded with Developer mode -> Load unpacked.
+# Needs two repository secrets from addons.mozilla.org -> Developer Hub -> Tools -> Manage API Keys:
+#   AMO_JWT_ISSUER (the "JWT issuer") and AMO_JWT_SECRET (the "JWT secret").
+# Mozilla signs each version number once (across listed and unlisted), so bump the version for every release.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # create the release
+
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+      SLUG: poe-ninja-time-machine-loadouts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Check the tag matches the version in the files
+        id: version
+        run: echo "version=$(node tools/release_version.js "$TAG")" >> "$GITHUB_OUTPUT"
+
+      - run: npm test
+      - run: npm run lint:firefox
+      - run: npm run package
+
+      - name: Sign the Firefox add-on with Mozilla (unlisted)
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+        run: |
+          if [ -z "$WEB_EXT_API_KEY" ] || [ -z "$WEB_EXT_API_SECRET" ]; then
+            echo "::error::Add the AMO_JWT_ISSUER and AMO_JWT_SECRET repository secrets (addons.mozilla.org API keys)"
+            exit 1
+          fi
+          npx web-ext sign --channel=unlisted --source-dir dist/firefox --artifacts-dir dist/signed --approval-timeout 1200000
+
+      - name: Name the release files
+        run: |
+          V="${{ steps.version.outputs.version }}"
+          mkdir -p release
+          xpi=$(ls dist/signed/*.xpi)
+          [ "$(echo "$xpi" | wc -l)" = 1 ] || { echo "::error::Expected one signed .xpi, got: $xpi"; exit 1; }
+          cp "$xpi" "release/$SLUG-$V-firefox.xpi"
+          cp "dist/packages/chrome-$V.zip" "release/$SLUG-$V-chrome-edge.zip"
+          ls -l release
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V="${{ steps.version.outputs.version }}"
+          cat > notes.md <<EOF
+          ## Install
+
+          **Firefox (140 or later):** download \`$SLUG-$V-firefox.xpi\` and drag it onto a Firefox window, then click **Add**.
+          It's signed by Mozilla and stays installed.
+
+          **Chrome / Edge:** download \`$SLUG-$V-chrome-edge.zip\` and unzip it. Open \`chrome://extensions\`
+          (or \`edge://extensions\`), turn on **Developer mode**, then drag the unzipped folder onto the page
+          (or click **Load unpacked** and pick it). To update, remove the old one and load the new folder.
+
+          Then open a Path of Exile 1 character page on poe.ninja and click **PoB snapshots** at the bottom right.
+          EOF
+          gh release create "$TAG" release/* --title "v$V" --notes-file notes.md --generate-notes --verify-tag
