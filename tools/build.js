@@ -12,10 +12,14 @@ const targets = {
     background: { scripts: ["src/pobcode.js", "src/upload.js", "src/background.js"] },
     browser_specific_settings: { gecko: {
       id: "time-machine-loadouts@poe-ninja-extension",
-      strict_min_version: "115.0",
-      // Nothing is sent to the developer; the only upload is the build the user chooses to share on pobb.in.
-      data_collection_permissions: { required: ["none"] },
-    } },
+      // 140 (ESR) / 142 on Android are the first versions with data_collection_permissions; supporting older
+      // ones would need a consent screen of our own (Mozilla add-on policies).
+      strict_min_version: "140.0",
+      // Nothing is sent to the developer. When the user presses Generate, the character's build (fetched
+      // from poe.ninja) is uploaded to pobb.in: Mozilla's "websiteContent" category, declared so the
+      // install prompt says so (extensionworkshop.com, firefox-builtin-data-consent and add-on policies).
+      data_collection_permissions: { required: ["websiteContent"] },
+    }, gecko_android: { strict_min_version: "142.0" } },
   }),
 };
 const files = ["pobcode.js", "merge.js", "ninja.js", "content.js", "upload.js", "background.js"];
@@ -25,6 +29,11 @@ for (const [name, manifest] of Object.entries(targets)) {
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(path.join(out, "src"), { recursive: true });
   for (const f of files) fs.copyFileSync(path.join(root, "src", f), path.join(out, "src", f));
+  fs.mkdirSync(path.join(out, "icons"));
+  for (const size of Object.keys(manifest.icons)) {
+    const icon = manifest.icons[size];
+    fs.copyFileSync(path.join(root, icon), path.join(out, icon));
+  }
   fs.writeFileSync(path.join(out, "manifest.json"), JSON.stringify(manifest, null, 2) + "\n");
   console.log("built " + path.relative(root, out));
 }

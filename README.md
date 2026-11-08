@@ -20,9 +20,21 @@ npm run build        # writes dist/chrome and dist/firefox
 
 - **Chrome / Edge:** open `chrome://extensions` (or `edge://extensions`), turn on Developer mode, choose
   **Load unpacked**, and pick `dist/chrome`.
-- **Firefox (115+):** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and pick
+- **Firefox (140+):** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and pick
   `dist/firefox/manifest.json`. If Generate says it can't reach pobb.in, allow the extension's access to pobb.in
   in `about:addons` → the extension → Permissions.
+
+## Packaging and stores
+
+```
+npm run package      # dist/packages/firefox-<version>.zip and chrome-<version>.zip
+npm run lint:firefox # Mozilla's add-on linter on dist/firefox
+npm run icons        # re-render icons/*.png from icons/icon.svg (uses Edge)
+```
+
+The Firefox zip is what you upload to addons.mozilla.org. The listing text is in `store/firefox-listing.md`, and
+the privacy policy is in `PRIVACY.md`. Firefox needs version 140 or later, because the manifest declares its
+data use (the build sent to pobb.in) with `data_collection_permissions`, which Firefox supports from 140.
 
 ## How it works
 

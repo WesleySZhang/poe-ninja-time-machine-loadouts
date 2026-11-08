@@ -7,10 +7,15 @@
     "test": "node --test \"test/**/*.test.js\"",
     "build": "node tools/build.js",
     "e2e:edge": "npm run build && node tools/e2e/edge.js",
-    "e2e:firefox": "npm run build && node tools/e2e/firefox.js"
+    "e2e:firefox": "npm run build && node tools/e2e/firefox.js",
+    "icons": "node tools/icons.js",
+    "lint:firefox": "npm run build && web-ext lint --source-dir dist/firefox",
+    "package": "npm run build && web-ext build --source-dir dist/firefox --artifacts-dir dist/packages --filename firefox-{version}.zip --overwrite-dest && web-ext build --source-dir dist/chrome --artifacts-dir dist/packages --filename chrome-{version}.zip --overwrite-dest"
   },
   "devDependencies": {
     "@xmldom/xmldom": "^0.9.12",
-    "puppeteer-core": "^24.43.1"
-  }
+    "puppeteer-core": "^24.43.1",
+    "web-ext": "^10.8.0"
+  },
+  "license": "MIT"
 }
