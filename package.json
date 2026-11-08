@@ -1,0 +1,16 @@
+{
+  "name": "poe-ninja-time-machine-loadouts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser extension: poe.ninja time machine snapshots -> one PoB build with loadouts -> pobb.in",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
+    "build": "node tools/build.js",
+    "e2e:edge": "npm run build && node tools/e2e/edge.js",
+    "e2e:firefox": "npm run build && node tools/e2e/firefox.js"
+  },
+  "devDependencies": {
+    "@xmldom/xmldom": "^0.9.12",
+    "puppeteer-core": "^24.43.1"
+  }
+}

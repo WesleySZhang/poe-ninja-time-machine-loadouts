@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "poe.ninja Time Machine Loadouts",
+  "version": "0.1.0",
+  "description": "Unofficial. Turns a poe.ninja character's time machine snapshots into one Path of Building build (a loadout per snapshot) and shares it on pobb.in.",
+  "host_permissions": ["https://pobb.in/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://poe.ninja/*"],
+      "js": ["src/merge.js", "src/ninja.js", "src/content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
