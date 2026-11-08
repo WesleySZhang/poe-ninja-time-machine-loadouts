@@ -1,6 +1,6 @@
 {
   "name": "poe-ninja-time-machine-loadouts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Browser extension: poe.ninja time machine snapshots -> one PoB build with loadouts -> pobb.in",
   "scripts": {
@@ -9,8 +9,9 @@
     "e2e:edge": "npm run build && node tools/e2e/edge.js",
     "e2e:firefox": "npm run build && node tools/e2e/firefox.js",
     "icons": "node tools/icons.js",
-    "lint:firefox": "npm run build && web-ext lint --source-dir dist/firefox",
-    "package": "npm run build && web-ext build --source-dir dist/firefox --artifacts-dir dist/packages --filename firefox-{version}.zip --overwrite-dest && web-ext build --source-dir dist/chrome --artifacts-dir dist/packages --filename chrome-{version}.zip --overwrite-dest"
+    "lint:firefox": "npm run build && web-ext lint --self-hosted --source-dir dist/firefox",
+    "package": "npm run build && web-ext build --source-dir dist/firefox --artifacts-dir dist/packages --filename firefox-{version}.zip --overwrite-dest && web-ext build --source-dir dist/chrome --artifacts-dir dist/packages --filename chrome-{version}.zip --overwrite-dest",
+    "bump": "node tools/set_version.js"
   },
   "devDependencies": {
     "@xmldom/xmldom": "^0.9.12",

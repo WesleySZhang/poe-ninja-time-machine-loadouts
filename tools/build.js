@@ -12,6 +12,9 @@ const targets = {
     background: { scripts: ["src/pobcode.js", "src/upload.js", "src/background.js"] },
     browser_specific_settings: { gecko: {
       id: "time-machine-loadouts@poe-ninja-extension",
+      // Self-distributed updates: the release workflow publishes this file to GitHub Pages (tools/updates_json.js).
+      // Installed copies keep checking the URL they were installed with, so it must never move.
+      update_url: require("./updates_json.js").UPDATE_URL,
       // 140 (ESR) / 142 on Android are the first versions with data_collection_permissions; supporting older
       // ones would need a consent screen of our own (Mozilla add-on policies).
       strict_min_version: "140.0",

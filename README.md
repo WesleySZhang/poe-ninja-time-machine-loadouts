@@ -41,17 +41,42 @@ data use (the build sent to pobb.in) with `data_collection_permissions`, which F
 GitHub Actions does this (`.github/workflows/`):
 
 - **CI** (every push to `main` and every pull request): unit tests, Mozilla's linter and a packaging run.
-- **Release** (pushing a tag like `v0.2.0`): checks the tag matches the version in `manifest.base.json` and
-  `package.json`, runs the tests, gets the Firefox add-on signed by Mozilla as an unlisted add-on, and publishes
-  a GitHub release with the `.xpi` (drag onto Firefox to install) and the Chrome/Edge zip, plus install steps.
+- **Release** (pushing a tag like `v0.2.0`):
+  1. checks the tag matches the version in `manifest.base.json` and `package.json`;
+  2. runs the tests and the linter;
+  3. gets the Firefox add-on signed by Mozilla as an unlisted (self-distributed) add-on;
+  4. publishes a GitHub release with the `.xpi` (drag onto Firefox to install) and the Chrome/Edge zip;
+  5. publishes `updates.json` and the `.xpi` to GitHub Pages. Installed Firefox copies read
+     `https://wesleyszhang.github.io/poe-ninja-time-machine-loadouts/updates.json` (the manifest's
+     `update_url`) once a day and update themselves. That URL must never change: installed copies keep the one
+     they were installed with.
 
-To release: set the same new version in `manifest.base.json` and `package.json`, commit, then
-`git tag v0.2.0 && git push origin main v0.2.0`. Mozilla signs each version number only once, whether it's for
-the store listing or a release file.
+To release:
 
-One-time setup: in addons.mozilla.org → Developer Hub → Tools → Manage API Keys, create a key, then add it to the
-GitHub repo (Settings → Secrets and variables → Actions) as `AMO_JWT_ISSUER` (the JWT issuer) and
-`AMO_JWT_SECRET` (the JWT secret).
+```
+npm run bump -- 0.2.0
+git commit -am "Release 0.2.0"
+git tag v0.2.0
+git push origin main v0.2.0
+```
+
+Mozilla signs each version number only once. 0.1.0 was signed by hand without `update_url`, so copies of it
+don't update themselves.
+
+Chrome and Edge copies loaded with Load unpacked don't update; users replace the folder.
+
+### One-time setup
+
+1. The repo must be public (GitHub Pages and downloadable releases).
+2. Settings → Pages → Source: **GitHub Actions**.
+3. Settings → Environments → `github-pages` → Deployment branches and tags: add the tag rule `v*`
+   (by default only `main` may deploy, and releases run from tags).
+4. Settings → Secrets and variables → Actions: `AMO_JWT_ISSUER` and `AMO_JWT_SECRET`, from addons.mozilla.org →
+   Developer Hub → Tools → Manage API Keys. From your own terminal, `gh secret set AMO_JWT_ISSUER` asks for the
+   value without echoing it.
+
+A public store listing on addons.mozilla.org can't carry `update_url` (AMO updates listed add-ons itself), so a
+store build would need it removed.
 
 ## How it works
 

@@ -13,6 +13,8 @@ on:
 
 permissions:
   contents: write # create the release
+  pages: write    # publish updates.json + the .xpi for Firefox's automatic updates
+  id-token: write # required by actions/deploy-pages
 
 concurrency:
   group: release-${{ github.ref }}
@@ -20,6 +22,9 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
     env:
       TAG: ${{ github.ref_name }}
       SLUG: poe-ninja-time-machine-loadouts
@@ -78,3 +83,13 @@ jobs:
           Then open a Path of Exile 1 character page on poe.ninja and click **PoB snapshots** at the bottom right.
           EOF
           gh release create "$TAG" release/* --title "v$V" --notes-file notes.md --generate-notes --verify-tag
+
+      # Firefox's automatic updates: installed copies read updates.json from the update_url in the manifest
+      # (https://wesleyszhang.github.io/poe-ninja-time-machine-loadouts/updates.json) once a day.
+      - name: Build the update site
+        run: node tools/updates_json.js "release/$SLUG-${{ steps.version.outputs.version }}-firefox.xpi" site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: pages
+        uses: actions/deploy-pages@v4
