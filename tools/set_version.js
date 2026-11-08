@@ -1,4 +1,4 @@
-// Sets the version in manifest.base.json and package.json together (the release workflow checks they match
+// Sets the version in manifest.base.json, package.json and package-lock.json together (the release workflow checks they match
 // the tag). Usage: npm run bump -- 0.1.1
 "use strict";
 const fs = require("fs");
@@ -22,6 +22,13 @@ if (require.main === module) {
       fs.writeFileSync(p, after);
       console.log(f + " -> " + process.argv[2]);
     }
+    // package-lock.json repeats the version at the top and under packages[""].
+    const lockPath = path.join(root, "package-lock.json");
+    const lock = JSON.parse(fs.readFileSync(lockPath, "utf8"));
+    lock.version = process.argv[2];
+    if (lock.packages && lock.packages[""]) lock.packages[""].version = process.argv[2];
+    fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + "\n");
+    console.log("package-lock.json -> " + process.argv[2]);
   } catch (e) {
     console.error(e.message);
     process.exit(1);
